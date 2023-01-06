@@ -1,6 +1,6 @@
 #include <Figure.h>
 
-Figure::Figure(QWidget *parent, int figure_type) : QWidget(parent)
+Figure::Figure(QWidget *parent, int figure_type) : QWidget(parent)//конструктор
 {
     this->figure_type = figure_type;
     button_is_selected = false;
@@ -54,16 +54,14 @@ Figure::Figure(QWidget *parent, int figure_type) : QWidget(parent)
             //F
             points.push_back({6, 6, (rand() % (rectangle_w_h.first / 4)) % rectangle_w_h.second, {0,0}});
         }
-        selected = false;
         int new_widgetWidth = abs(cos(qDegreesToRadians(rotation)) * width) + abs(cos(qDegreesToRadians(90 - rotation)) * height);
         int new_widgetHeight = abs(sin(qDegreesToRadians(rotation)) * width) + abs(sin(qDegreesToRadians(90 - rotation)) * height);
         this->repaint();
         resized = false;
         //смещение виджета для устранения смещения центра фигуры
-        this->move(this->x() + (this->width() - new_widgetWidth - 2) / 2, this->y() + (this->height() - new_widgetHeight - 2) / 2);
-
-        //запас в 1 пиксель для устранения погрешностей вычислений
-        this->resize(new_widgetWidth + 1, new_widgetHeight + 1);
+        this->move(this->x() + (this->width() - new_widgetWidth - 2) / 4, this->y() + (this->height() - new_widgetHeight - 4) / 2);
+        //запас в 4 пикселя для устранения погрешностей вычислений
+        this->resize(new_widgetWidth + 4, new_widgetHeight + 4);
         QPainterPath painter_path;
         double radius = sqrt(width*width + height*height) / 2;
         int ex_angle = qRadiansToDegrees(acos((2*radius*radius - height*height) / (2*radius*radius)));
@@ -92,12 +90,12 @@ Figure::Figure(QWidget *parent, int figure_type) : QWidget(parent)
     slider_label->setAlignment(Qt::AlignCenter);
 }
 
-std::pair<int,int> Figure::GetWidthHeight() const
+std::pair<int,int> Figure::GetWidthHeight() const//получить размеры фигуры
 {
     return rectangle_w_h;
 }
 
-void Figure::SetWidthHeight(std::pair<int,int> wh)
+void Figure::SetWidthHeight(std::pair<int,int> wh)//установка новых размеров фигуры
 {
     for(auto& i: points)
     {
@@ -108,21 +106,20 @@ void Figure::SetWidthHeight(std::pair<int,int> wh)
     this->repaint();
 }
 
-void Figure::SetRotation(int rotation)
+void Figure::SetRotation(int rotation)//установка нового поворота фигуры
 {
     this->rotation = rotation;
     resized = false;
     this->repaint();
 }
 
-void Figure::SetPosition(QPoint pos)
+void Figure::SetPosition(QPoint pos)//установка нового положения фигуры
 {
     this->move(pos);
     this->repaint();
 }
 
-
-std::vector<QPoint> Figure::PointsPositions() const
+std::vector<QPoint> Figure::PointsPositions() const//возврат координат вершин
 {
     std::vector<QPoint> temp;
     for(auto i: points)
@@ -132,7 +129,7 @@ std::vector<QPoint> Figure::PointsPositions() const
     return temp;
 }
 
-bool Figure::IsPointOfFigure(const QPoint& pos) const
+bool Figure::IsPointOfFigure(const QPoint& pos) const//проверка, что курсор внутри фигуры
 {
     QPainterPath painter_path;
     QPolygon around_rec;
@@ -145,7 +142,7 @@ bool Figure::IsPointOfFigure(const QPoint& pos) const
     return painter_path.intersects(around_mouse) || painter_path.contains(around_mouse);
 }
 
-bool Figure::IsFigureInTheScreen(const QPoint& pos) const
+bool Figure::IsFigureInTheScreen(const QPoint& pos) const//проверка, что фигура в пределах окна приложения
 {
     QPainterPath painter_path;
     QPainterPath screen_path;
@@ -155,21 +152,18 @@ bool Figure::IsFigureInTheScreen(const QPoint& pos) const
         around_rec.append(points[i].pos + pos);
     }
     painter_path.addPolygon(around_rec);
-
     QRect around_screen({1,20}, QSize(parentWidget()->width() - 1, parentWidget()->height() - 10));
     screen_path.addRect(around_screen);
-
     return screen_path.contains(painter_path);
 }
 
-bool Figure::NoIntersectsBetweenFigures(const QPoint& pos) const
+bool Figure::NoIntersectsBetweenFigures(const QPoint& pos) const//проверка, что нету пересечений между фигурами
 {
     auto Points1 = PointsPositions();
     for (auto& i: Points1)
     {
         i += pos;
     }
-    //qDebug() << figures.size() << "\n";
     for(size_t j = 0; j < figures.size(); ++j)
     {
         if (figures[j] == this)
@@ -199,20 +193,18 @@ bool Figure::NoIntersectsBetweenFigures(const QPoint& pos) const
     return true;
 }
 
-void Figure::Deselect()
+void Figure::Deselect()//удаление выбора данной фигуры
 {
-    selected = false;
     SELECTED_FIGURE = nullptr;
     this->repaint();
 }
 
-void Figure::mousePressEvent(QMouseEvent *event)
+void Figure::mousePressEvent(QMouseEvent *event)//нажатие кнопок мыши
 {
     if (SELECTED_FIGURE != nullptr)
     {
         SELECTED_FIGURE->Deselect();
     }
-
     switch(event->button())
     {
         case Qt::LeftButton:
@@ -220,7 +212,6 @@ void Figure::mousePressEvent(QMouseEvent *event)
             {
                 mouse_x_y = std::make_pair(event->globalPosition().x() - this->x(), event->globalPosition().y() - this->y());
                 SELECTED_FIGURE = this;
-                selected = true;
                 this->repaint();
             }
             break;
@@ -242,7 +233,7 @@ void Figure::mousePressEvent(QMouseEvent *event)
 
 void Figure::mouseMoveEvent(QMouseEvent *event)
 {
-    if (selected)
+    if (SELECTED_FIGURE == this)
     {
         QPoint temp = QPoint(event->globalPosition().x() - mouse_x_y.first - this->pos().x(), event->globalPosition().y() - mouse_x_y.second - this->pos().y());
         //проверка на выход за пределы экрана
@@ -265,7 +256,6 @@ void Figure::paintEvent(QPaintEvent *event)
     //ширина и высота ограничивающего прямоугольника
     int widgetWidth = rectangle_w_h.first;
     int widgetHeight = rectangle_w_h.second;
-
     //изменение размеров виджета при повороте/изменении размеров фигуры
     if (!resized)
     {
@@ -278,7 +268,7 @@ void Figure::paintEvent(QPaintEvent *event)
         this->move(this->x() + (this->width() - new_widgetWidth - 4) / 2, this->y() + (this->height() - new_widgetHeight - 4) / 2);
 
         //запас в 1 пиксель для устранения погрешностей вычислений
-        this->resize(new_widgetWidth + 1, new_widgetHeight + 1);
+        this->resize(new_widgetWidth + 4, new_widgetHeight + 4);
     }
 
     QPainter painter(this);
@@ -287,9 +277,9 @@ void Figure::paintEvent(QPaintEvent *event)
     double radius = sqrt(widgetWidth*widgetWidth + widgetHeight*widgetHeight) / 2;
     int ex_angle = qRadiansToDegrees(acos((2*radius*radius - widgetHeight*widgetHeight) / (2*radius*radius)));
     painter_path.translate(this->x(), this->y());
-    painter_path.moveTo(0,0);
+    //painter_path.moveTo(0,0);
     int dir_rotation = rotation;
-    if (!rotated)
+    if (!rotated)//false - против часовой, true - по часовой
     {
         dir_rotation *= (-1);
     }
@@ -303,16 +293,14 @@ void Figure::paintEvent(QPaintEvent *event)
     painter_path.arcMoveTo(ficha.x(), ficha.y(), radius*2, radius*2, 180 + dir_rotation - ex_angle/2);//точка D
     points[3].pos = {int(painter_path.currentPosition().x()), int(painter_path.currentPosition().y())};
 
-    /*painter.setPen(QPen(Qt::red, 2));
+    /*painter.setPen(QPen(Qt::red, 2));//для отрисовки границ отслеживания области отслеживания нажатия курсора
     painter.drawLine(points[0].pos, points[1].pos);
     painter.drawLine(points[1].pos, points[2].pos);
     painter.drawLine(points[2].pos, points[3].pos);
     painter.drawLine(points[3].pos, points[0].pos);*/
 
-    painter.setPen(QPen(Qt::black, 2));
     //смещение осей координат
     painter.translate(this->width()/2, this->height()/2);
-
     //поворот осей координат (по умолчанию против часовой стрелки)
     if (rotated)
     {
@@ -322,22 +310,22 @@ void Figure::paintEvent(QPaintEvent *event)
     {
         painter.rotate(+rotation);
     }
-
     //если фигура выделена, то отрисовывается синим
-    if (selected)
+    if (this == SELECTED_FIGURE)
     {
         painter.setPen(QPen(Qt::blue, 3));
     }
+
     //отрисовка прямых, соединяющих точки A,B,C,D,E,F между собой
-    //верх
+    // верхняя линия
     painter.drawLine(points[3].value - widgetWidth / 2, (-1)*widgetHeight / 2, (-1)*points[4].value / 2, (-1)*widgetHeight / 2);
     painter.drawLine(points[4].value / 2, (-1)*widgetHeight / 2, widgetWidth / 2 - points[0].value, (-1)*widgetHeight / 2);
-    //право
+    // правая линия
     painter.drawLine(widgetWidth / 2, points[0].value - widgetHeight / 2, widgetWidth / 2, widgetHeight / 2 - points[1].value);
-    //низ
+    // нижняя линия
     painter.drawLine(points[2].value - widgetWidth / 2, widgetHeight / 2, (-1)*points[5].value / 2, widgetHeight / 2);
     painter.drawLine(points[5].value / 2, widgetHeight / 2, widgetWidth / 2 - points[1].value, widgetHeight / 2);
-    //лево
+    // левая линия
     painter.drawLine((-1)*widgetWidth / 2, points[3].value - widgetHeight / 2, (-1)*widgetWidth / 2, widgetHeight / 2 - points[2].value);
 
     //универсальная отрисовка всех точек
@@ -529,14 +517,14 @@ void Figure::PaintPoint(QPainter& painter, const Point& point, const int posW, c
     }
 }
 
-void Figure::FigureDeleteClicked()
+void Figure::FigureDeleteClicked()//удаление фигуры
 {
     figures.erase(std::remove(figures.begin(), figures.end(), this), figures.end());
     this->deleteLater();
     SELECTED_FIGURE = nullptr;
 }
 
-void Figure::FigureRotationRight()
+void Figure::FigureRotationRight()//поворот фигуры направо
 {
     if(!new_rotation_left->isChecked() && !new_rotation_right->isChecked())
     {
@@ -553,7 +541,7 @@ void Figure::FigureRotationRight()
     }
 }
 
-void Figure::FigureRotationLeft()
+void Figure::FigureRotationLeft()//поворот фигуры налево
 {
     if(!new_rotation_left->isChecked() && !new_rotation_right->isChecked())
     {
@@ -570,7 +558,7 @@ void Figure::FigureRotationLeft()
     }
 }
 
-void Figure::FigureChangeSave()
+void Figure::FigureChangeSave()//сохранение изменений параметров фигуры
 {
     try
     {
@@ -636,7 +624,7 @@ void Figure::FigureChangeSave()
     new_area->setText("Площадь фигуры: " + QString::number(area));
 }
 
-void Figure::FigureChangeClicked()
+void Figure::FigureChangeClicked()//кликнута кнопка изменения параметров фигуры
 {
     QDialog* modalDialog = new QDialog(this);
     modalDialog->setModal(true);
@@ -689,7 +677,7 @@ void Figure::FigureChangeClicked()
     modalDialog->exec();
 }
 
-void Figure::NewPerimeter()
+void Figure::NewPerimeter()//рассчёт нового периметра фигуры
 {
     perimeter = 2 * rectangle_w_h.first + 2 * rectangle_w_h.second;
     for (const auto& i: points)
@@ -721,7 +709,7 @@ void Figure::NewPerimeter()
     }
 }
 
-void Figure::NewArea()
+void Figure::NewArea()//рассчёт новой площади фигуры
 {
     area = rectangle_w_h.first * rectangle_w_h.second;
     for (const auto& i: points)
@@ -753,9 +741,8 @@ void Figure::NewArea()
     }
 }
 
-void Figure::FigureMove()
+void Figure::FigureMove()//кнопка перемещения фигуры
 {
-    selected = true;
     SELECTED_FIGURE = this;
     if(!button_is_selected)
     {
@@ -766,7 +753,7 @@ void Figure::FigureMove()
     this->repaint();
 }
 
-void Figure::SliderMove(int val)
+void Figure::SliderMove(int val)//изменение положения ползунка поворота
 {
     if (val < 0)
     {
@@ -786,12 +773,14 @@ void Figure::SliderMove(int val)
     this->repaint();
 }
 
-void Figure::FigureRotate()
+void Figure::FigureRotate()//
 {
     QDialog* modalDialog = new QDialog(this);
-    //modalDialog->setModal(true);
+
     QBoxLayout* boxLayout = new QBoxLayout(QBoxLayout::Down);
+
     QBoxLayout* labelLayout = new QBoxLayout(QBoxLayout::LeftToRight);
+
     QLabel* l1 = new QLabel("-180");
     l1->setAlignment(Qt::AlignLeft);
     labelLayout->addWidget(l1);
@@ -801,6 +790,7 @@ void Figure::FigureRotate()
     QLabel* l3 = new QLabel(" 180");
     l3->setAlignment(Qt::AlignRight);
     labelLayout->addWidget(l3);
+
     QSlider* slider = new QSlider(Qt::Orientation::Horizontal);
     slider->setMinimum(-180);
     slider->setMaximum(180);
@@ -833,7 +823,7 @@ void Figure::FigureRotate()
     modalDialog->exec();
 }
 
-void Figure::InfoAboutFigure(QMouseEvent *event)
+void Figure::InfoAboutFigure(QMouseEvent *event)//нажатие правой кнопкой мыши по фигуре
 {
     QMenu* cursorMenu = new QMenu();
 
@@ -856,6 +846,7 @@ void Figure::InfoAboutFigure(QMouseEvent *event)
 
     QPushButton* button_rotate = new QPushButton("Повернуть");
     connect(button_rotate, SIGNAL(clicked()), this, SLOT(FigureRotate()));
+
     boxLayout->addWidget(button_move);
     boxLayout->addWidget(button_rotate);
 

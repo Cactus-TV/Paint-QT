@@ -1,10 +1,7 @@
 #include "Toolbar.h"
 
-Toolbar::Toolbar(QMainWindow *parent) : QToolBar(parent)
+Toolbar::Toolbar(QMainWindow *parent) : QToolBar(parent)//конструктор
 {
-    /*
-     * По умолчанию не один тип фигуры не выбран, создаём кнопки для типов, привязываем сигналы к слотам
-     */
     chosen_figure12 = false;
     chosen_figure22 = false;
     radio_button_figure12 = new QPushButton("Фигура 12");
@@ -13,9 +10,7 @@ Toolbar::Toolbar(QMainWindow *parent) : QToolBar(parent)
     radio_button_figure22->setCheckable(true);
     connect(radio_button_figure12, SIGNAL(clicked()), this, SLOT(Figure12Toggled()));
     connect(radio_button_figure22, SIGNAL(clicked()), this, SLOT(Figure22Toggled()));
-    /*
-     * Создаём кнопки для удаления и добавления фигур, привязываем сигналы к слотам
-     */
+
     button_add = new QPushButton("Добавить");
     button_delete = new QPushButton("Удалить");
     button_add->setDisabled(true);
@@ -25,24 +20,25 @@ Toolbar::Toolbar(QMainWindow *parent) : QToolBar(parent)
     connect(button_fit, SIGNAL(clicked()), this, SLOT(FiguresFit()));
 
     QPushButton* menu_button = new QPushButton("Удаление");
+
     QMenu* menu = new QMenu(this);
+
     QAction* action_all = new QAction();
     action_all->setData(0);
     action_all->setText("Удалить все");
+
     QAction* action_intersected = new QAction();
     action_intersected->setData(1);
     action_intersected->setText("Удалить пересекающиеся");
+
     menu->addAction(action_all);
     menu->addAction(action_intersected);
     menu_button->setMenu(menu);
 
     connect(menu, SIGNAL(triggered(QAction*)), this, SLOT(MenuTriggered(QAction*)));
-
     connect(button_add, SIGNAL(clicked()), this, SLOT(FigureAddTriggered()));
     connect(button_delete, SIGNAL(clicked()), this, SLOT(FigureDeleteTriggered()));
-    /*
-     * Крепим кнопки к toolbar вместе с разделителями, а также настраиваем размер toolbar, делаем его неперемещаемым
-     */
+
     this->resize(1000,50);
     this->setMovable(false);
     this->addWidget(radio_button_figure12);
@@ -58,7 +54,7 @@ Toolbar::Toolbar(QMainWindow *parent) : QToolBar(parent)
     this->show();
 }
 
-void Toolbar::FigureDeleteTriggered()
+void Toolbar::FigureDeleteTriggered()//нажатие кнопки удаления фигуры
 {
     figures.erase(std::remove(figures.begin(), figures.end(), SELECTED_FIGURE), figures.end());
     delete SELECTED_FIGURE;
@@ -66,7 +62,7 @@ void Toolbar::FigureDeleteTriggered()
     button_delete->setDisabled(true);
 }
 
-void Toolbar::FigureAddTriggered()
+void Toolbar::FigureAddTriggered()//нажатие кнопки создания фигуры
 {
     if (chosen_figure12)
     {
@@ -84,7 +80,7 @@ void Toolbar::FigureAddTriggered()
     }
 }
 
-void Toolbar::Figure12Toggled()
+void Toolbar::Figure12Toggled()//выбор фигуры 12
 {
     chosen_figure22 = false;
     if (chosen_figure12)
@@ -107,7 +103,7 @@ void Toolbar::Figure12Toggled()
     }
 }
 
-void Toolbar::MenuTriggered(QAction* act)
+void Toolbar::MenuTriggered(QAction* act)//выбор удаления всех/пересекающихся
 {
     if (act->data() == 0)
     {
@@ -167,7 +163,7 @@ void Toolbar::MenuTriggered(QAction* act)
     }
 }
 
-void Toolbar::FiguresFit()
+void Toolbar::FiguresFit()//кнопка уместить
 {
     int summ_w = 0;//суммарная ширина
     int summ_h = 0;//суммарная высота
@@ -213,7 +209,7 @@ void Toolbar::FiguresFit()
     }
 }
 
-void Toolbar::Figure22Toggled()
+void Toolbar::Figure22Toggled()//выбор фигуры 22
 {
     chosen_figure12 = false;
     if (chosen_figure22)

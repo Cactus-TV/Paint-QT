@@ -2,8 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-
-#include "ToolBar.h"
+#include <ToolBar.h>
 
 class MainWindow : public QMainWindow
 {
@@ -17,6 +16,7 @@ protected:
     void resizeEvent(QResizeEvent *event);
 
 private:
+    //верхнее меню (тулбар)
     Toolbar* toolBar;
 };
 #endif // MAINWINDOW_H

@@ -17,11 +17,11 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent)
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
-    if (event->spontaneous() && SELECTED_FIGURE != nullptr)
+    if (event->spontaneous() && SELECTED_FIGURE != nullptr)//если фигура была выбрана извне приложения случайно
     {
         SELECTED_FIGURE->Deselect();
     }
-
+    //сделать кнопку удаления фигуры неактивной, если ни одна фигура не выбрана и наоборот активной, если выбрана
     if (SELECTED_FIGURE == nullptr)
     {
         toolBar->DisableDeleteButton(true);
